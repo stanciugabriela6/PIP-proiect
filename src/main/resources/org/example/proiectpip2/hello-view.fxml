@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox alignment="CENTER" fillWidth="false" prefHeight="669.0" prefWidth="654.0" spacing="15.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.proiectpip2.LoginController">
+    <padding>
+        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+    </padding>
+   <children>
+      <Label fx:id="titleLabel" prefHeight="71.0" prefWidth="140.0" text="  Login">
+         <font>
+            <Font size="36.0" />
+         </font>
+      </Label>
+      <Label text="Username" />
+      <TextField fx:id="usernameField" prefHeight="26.0" prefWidth="350.0" />
+      <Label text="Password" />
+      <PasswordField fx:id="passwordField" prefWidth="350.0" />
+      <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" prefHeight="50.0" prefWidth="200.0" text="Login">
+         <font>
+            <Font size="24.0" />
+         </font></Button>
+      <Label />
+      <Label text="Don't have an account?" />
+      <Button fx:id="registerButton" mnemonicParsing="false" onAction="#handleGoToRegister" prefWidth="140.0" text="Register" />
+      <Label fx:id="messageLabel" alignment="CENTER" prefHeight="18.0" prefWidth="250.0" />
+      <Label fx:id="registerLabel" prefHeight="18.0" prefWidth="0.0" />
+   </children>
+</VBox>
