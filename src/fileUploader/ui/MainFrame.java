@@ -37,7 +37,7 @@ public class MainFrame extends JFrame {
         setContentPane(root);
 
         uploadPanel.getUploadButton().addActionListener(e -> openChooser());
-        initDnD();
+        init();
     }
 
     private void openChooser() {
@@ -49,7 +49,7 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void initDnD() {
+    private void init() {
         TransferHandler handler = new TransferHandler() {
             @Override
             public boolean canImport(TransferSupport s) {
