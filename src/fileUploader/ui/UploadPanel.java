@@ -25,6 +25,7 @@ public class UploadPanel extends JPanel {
         uploadButton.setOpaque(true);
         uploadButton.setBorderPainted(false);
         uploadButton.setContentAreaFilled(true);
+        uploadButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         add(label, BorderLayout.CENTER);
         add(uploadButton, BorderLayout.SOUTH);
