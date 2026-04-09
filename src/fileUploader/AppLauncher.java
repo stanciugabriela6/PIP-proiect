@@ -19,6 +19,7 @@ import javax.swing.*;
 //    }
 //}
 import fileUploader.ui.ChatBot;
+import fileUploader.ui.MyProfile;
 
 import javax.swing.*;
 
@@ -35,7 +36,7 @@ public class AppLauncher {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1000, 700);
             frame.setLocationRelativeTo(null);
-            frame.setContentPane(new ChatBot());
+            frame.setContentPane(new MyProfile());
             frame.setVisible(true);
         });
     }

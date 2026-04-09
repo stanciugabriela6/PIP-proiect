@@ -24,16 +24,16 @@ public class ChatBot extends JPanel {
         setLayout(new BorderLayout());
 
         backgroundImg = new ImageIcon(getClass().getResource("/background.jpg")).getImage();
-        Image sendImg   = new ImageIcon(getClass().getResource("/send-message.png")).getImage();
+        Image sendImg = new ImageIcon(getClass().getResource("/send-message.png")).getImage();
         Image uploadImg = new ImageIcon(getClass().getResource("/upload.png")).getImage();
-        Image robotImg  = new ImageIcon(getClass().getResource("/robot.png")).getImage();
-        Image robotImg2  = new ImageIcon(getClass().getResource("/robot2.png")).getImage();
-        Image robotImg3  = new ImageIcon(getClass().getResource("/robot3.png")).getImage();
-        Image robotImg4  = new ImageIcon(getClass().getResource("/robot4.png")).getImage();
-        Image robotImg5  = new ImageIcon(getClass().getResource("/robot5.png")).getImage();
-        Image robotImg6  = new ImageIcon(getClass().getResource("/robot6.png")).getImage();
-        Image robotImg7  = new ImageIcon(getClass().getResource("/robot7.png")).getImage();
-        Image robotImg8  = new ImageIcon(getClass().getResource("/robot8.png")).getImage();
+        Image robotImg = new ImageIcon(getClass().getResource("/robot.png")).getImage();
+        Image robotImg2 = new ImageIcon(getClass().getResource("/robot2.png")).getImage();
+        Image robotImg3 = new ImageIcon(getClass().getResource("/robot3.png")).getImage();
+        Image robotImg4 = new ImageIcon(getClass().getResource("/robot4.png")).getImage();
+        Image robotImg5 = new ImageIcon(getClass().getResource("/robot5.png")).getImage();
+        Image robotImg6 = new ImageIcon(getClass().getResource("/robot6.png")).getImage();
+        Image robotImg7 = new ImageIcon(getClass().getResource("/robot7.png")).getImage();
+        Image robotImg8 = new ImageIcon(getClass().getResource("/robot8.png")).getImage();
         Image userImg = new ImageIcon(getClass().getResource("/user.png")).getImage();
 
         String greeting = GREETINGS[new Random().nextInt(GREETINGS.length)];
