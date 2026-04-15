@@ -129,5 +129,3 @@ def register_user(email):
   print("Inrolare reusita")
 
   return True
-
-
