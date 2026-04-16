@@ -15,6 +15,7 @@ public final class AppColors {
 
     public static final Color TEXT_PRIMARY = new Color(230, 235, 255);
     public static final Color TEXT_SECONDARY = new Color(130, 145, 185);
+    public static  final Color VALIDATE = new Color(55, 255, 0);
 
     public static final Color ACCENT = new Color(99, 135, 255);
     public static final Color ACCENT2 = new Color(0, 5, 100);
