@@ -5,6 +5,7 @@ import fileUploader.account.UserAccount;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.util.Random;
 
 public class ChatBot extends JPanel {
@@ -109,12 +110,25 @@ public class ChatBot extends JPanel {
         textArea.setOpaque(true);
         textArea.setBackground(AppColors.TEXT_SECONDARY);
 
+        textArea.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "send");
+        textArea.getActionMap().put("send", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendMessage();
+            }
+        });
+
+        textArea.getInputMap().put(KeyStroke.getKeyStroke("shift ENTER"), "newline");
+        textArea.getActionMap().put("newline", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textArea.append("\n");
+            }
+        });
+
         JButton sendBtn = new JButton(new ImageIcon(sendImg.getScaledInstance(28, 28, Image.SCALE_SMOOTH)));
         styleIconButton(sendBtn);
-        sendBtn.addActionListener(e -> {
-            introLabel.setVisible(false);
-            textArea.setText("");
-        });
+        sendBtn.addActionListener(e -> sendMessage());
 
         inputBar.add(uploadBtn, BorderLayout.WEST);
         inputBar.add(new JScrollPane(textArea), BorderLayout.CENTER);
@@ -123,6 +137,16 @@ public class ChatBot extends JPanel {
         userPanel.add(userAccount, BorderLayout.EAST);
 
         add(inputBar, BorderLayout.SOUTH);
+    }
+
+    private void sendMessage() {
+        String msg = textArea.getText().trim();
+
+        if (msg.isEmpty()) {
+            return;
+        }
+        introLabel.setVisible(false);
+        textArea.setText("");
     }
 
     private void styleIconButton(JButton btn) {
