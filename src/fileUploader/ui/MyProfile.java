@@ -18,6 +18,8 @@ public class MyProfile extends JPanel {
     private JTextField ageField;
     private JTextField scoreField;
 
+    private JProgressBar performanceBar;
+
     ArrayList<JButton> buttons = new ArrayList<>();
     ArrayList<JLabel> labels = new ArrayList<>();
     ArrayList<JTextField> fields = new ArrayList<>();
@@ -98,7 +100,48 @@ public class MyProfile extends JPanel {
         labels.add(scoreLabel);
 
         scoreField = new JTextField();
-        scoreField.setBounds(410, 415, 245, 24);
+        scoreField.setBounds(410, 415, 180, 24);
+
+
+        performanceBar = new JProgressBar(0, 100) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(AppColors.BG_CARD);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                int filled = (int) ((getValue() / 100.0) * getWidth());
+                Color barColor = getValue() >= 75 ? new Color(72, 152, 12)
+                        : getValue() >= 40 ? AppColors.ACCENT
+                        : new Color(239, 68, 68);
+                g2.setColor(barColor);
+                g2.fillRoundRect(0, 0, filled, getHeight(), 8, 8);
+                g2.setColor(AppColors.TEXT_PRIMARY);
+                g2.setFont(new Font("SansSerif", Font.BOLD, 10));
+                String pct = getValue() + "%";
+                FontMetrics fm = g2.getFontMetrics();
+                g2.drawString(pct, (getWidth() - fm.stringWidth(pct)) / 2,
+                        (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+                g2.dispose();
+            }
+        };
+        performanceBar.setBounds(595, 415, 60, 24);
+        performanceBar.setBorderPainted(false);
+        performanceBar.setOpaque(false);
+        performanceBar.setValue(user.getPerformance());
+        add(performanceBar);
+
+        scoreField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void sync() {
+                try {
+                    int v = Integer.parseInt(scoreField.getText().trim());
+                    if (v >= 0 && v <= 100) performanceBar.setValue(v);
+                } catch (NumberFormatException ignored) {}
+            }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { sync(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { sync(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { sync(); }
+        });
         fields.add(scoreField);
 
         setAccount();
