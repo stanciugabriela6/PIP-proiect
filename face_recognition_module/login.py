@@ -33,7 +33,7 @@ def find_best_match(live_embedding, threshold = 0.6, json_path = "users.json"):
 
 
 def login_user():
-  live_embedding = get_live_embedding()
+  live_embedding = get_live_embedding(window_title="Autentificare - Priveste la camera")
 
   if live_embedding is None:
     print("Login esuat: nu s a putut obtine embedding ul")

@@ -29,7 +29,7 @@ async def register(request: Request):
 
 
 @app.post("/login", response_class=PlainTextResponse)
-def login():
+async def login():
     try:
         from run_login import run_login
         email = run_login()

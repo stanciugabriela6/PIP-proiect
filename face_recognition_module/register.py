@@ -69,12 +69,16 @@ def extract_embedding_from_frame(frame, face_location):
     return face_encodings[0]
 
 
-def get_live_embedding(required_samples=3, min_time_between_samples=1.0, timeout_seconds=30.0):
+def get_live_embedding(required_samples=3, min_time_between_samples=1.0, timeout_seconds=30.0, window_title="Camera"):
     cap = cv2.VideoCapture(0)
 
     if not cap.isOpened():
         print("Eroare: nu pot deschide camera")
         return None
+
+    cv2.namedWindow(window_title, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(window_title, 640, 480)
+    cv2.setWindowProperty(window_title, cv2.WND_PROP_TOPMOST, 1)
 
     valid_embeddings = []
     last_capture_time = 0
@@ -126,7 +130,7 @@ def get_live_embedding(required_samples=3, min_time_between_samples=1.0, timeout
             2
         )
 
-        cv2.imshow("Enroll Face", frame)
+        cv2.imshow(window_title, frame)
 
         key = cv2.waitKey(1) & 0xFF
         if key == 27:  # ESC
@@ -157,7 +161,7 @@ def get_live_embedding(required_samples=3, min_time_between_samples=1.0, timeout
 
 
 def register_user(email):
-    final_embedding = get_live_embedding()
+    final_embedding = get_live_embedding(window_title="Inregistrare - Priveste la camera")
 
     if final_embedding is None:
         print("Inrolarea a esuat.")
