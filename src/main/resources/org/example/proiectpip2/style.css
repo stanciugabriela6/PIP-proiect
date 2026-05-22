@@ -1,120 +1,127 @@
-/* ROOT */
+/* ─── ROOT ──────────────────────────────────────────────────────────── */
 .root {
     -fx-background-color: transparent;
-    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+    -fx-font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-/* TITLU */
+/* ─── LABELS ────────────────────────────────────────────────────────── */
 .label {
-    -fx-text-fill: #e2e8f0;
-    -fx-font-size: 14px;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
 }
 
 #titleLabel {
-    -fx-text-fill: #38bdf8; /* cyan accent */
-    -fx-font-size: 32px;
-    -fx-font-weight: bold;
-}
-
-/* TEXT FIELD */
-.text-field, .password-field {
-    -fx-background-color: #1e293b;
     -fx-text-fill: #e2e8f0;
-    -fx-prompt-text-fill: #94a3b8;
-
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-
-    -fx-border-color: transparent;
-    -fx-padding: 10 15;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.5), 12, 0.2, 0, 0);
 }
 
-/* focus effect */
-.text-field:focused, .password-field:focused {
-    -fx-border-color: #38bdf8;
+/* ─── TEXT FIELDS ───────────────────────────────────────────────────── */
+.text-field, .password-field {
+    -fx-background-color: #111827;
+    -fx-text-fill: #e2e8f0;
+    -fx-prompt-text-fill: #4b5563;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #1f2a42;
     -fx-border-width: 1.5;
+    -fx-padding: 11 14;
+    -fx-font-size: 14px;
 }
 
-/* BUTTON */
-.button {
-    -fx-background-color: #2563eb;
-    -fx-text-fill: white;
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #6387ff;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.25), 8, 0, 0, 0);
+}
 
-    -fx-background-radius: 12;
+/* ─── BUTTONS ───────────────────────────────────────────────────────── */
+.button {
+    -fx-background-color: #6387ff;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-
     -fx-cursor: hand;
-    -fx-padding: 10 20;
-
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.4), 5, 0, 0, 2);
+    -fx-padding: 10 22;
+    -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.35), 8, 0.1, 0, 3);
 }
 
-/* hover effect */
 .button:hover {
-    -fx-background-color: #1d4ed8;
+    -fx-background-color: #7c9eff;
+    -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.55), 14, 0.2, 0, 4);
 }
 
-/* pressed */
 .button:pressed {
-    -fx-background-color: #1e40af;
+    -fx-background-color: #4f6fd4;
+    -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.2), 4, 0, 0, 1);
 }
 
-/* REGISTER BUTTON (secondary) */
-#registerButton {
+/* ─── SECONDARY / REGISTER BUTTON ──────────────────────────────────── */
+#registerButton, #loginRegister {
     -fx-background-color: transparent;
-    -fx-text-fill: #38bdf8;
-    -fx-border-color: #38bdf8;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
+    -fx-text-fill: #6387ff;
+    -fx-border-color: #6387ff;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-effect: none;
 }
 
-#registerButton:hover {
-    -fx-background-color: rgba(56,189,248,0.1);
+#registerButton:hover, #loginRegister:hover {
+    -fx-background-color: rgba(99,135,255,0.1);
+    -fx-effect: none;
 }
 
-/* FACE ID BUTTON */
+/* ─── FACE ID BUTTON ────────────────────────────────────────────────── */
 #faceIdButton {
-    -fx-background-color: #10b981; /* green */
+    -fx-background-color: #10b981;
+    -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.35), 8, 0.1, 0, 3);
 }
 
 #faceIdButton:hover {
-    -fx-background-color: #059669;
+    -fx-background-color: #34d399;
+    -fx-effect: dropshadow(gaussian, rgba(52,211,153,0.45), 12, 0.2, 0, 4);
 }
 
-/* MESSAGE LABEL */
+/* ─── MESSAGE LABEL ─────────────────────────────────────────────────── */
 #messageLabel {
     -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
-/* CARD STYLE - glass effect peste fundalul animat */
+/* ─── CARD (VBox / StackPane glass layer) ───────────────────────────── */
 .vbox {
-    -fx-background-color: rgba(15, 23, 42, 0.75);
-    -fx-background-radius: 20;
-    -fx-padding: 30;
-    -fx-spacing: 15;
-    -fx-border-color: rgba(255, 255, 255, 0.08);
-    -fx-border-radius: 20;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.6), 20, 0.2, 0, 6);
+    -fx-background-color: rgba(10, 14, 26, 0.82);
+    -fx-background-radius: 16;
+    -fx-padding: 36 40;
+    -fx-spacing: 14;
+    -fx-border-color: rgba(99, 135, 255, 0.12);
+    -fx-border-radius: 16;
+    -fx-border-width: 1.2;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 30, 0.15, 0, 8);
 }
+
+/* ─── COMBO BOX ─────────────────────────────────────────────────────── */
 .combo-box {
-    -fx-background-color: #1e293b;
+    -fx-background-color: #111827;
     -fx-text-fill: #e2e8f0;
-    -fx-background-radius: 10;
-    -fx-border-radius: 10;
-    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #1f2a42;
+    -fx-border-width: 1.5;
     -fx-padding: 6 10;
 }
 
 .combo-box:focused {
-    -fx-border-color: #38bdf8;
+    -fx-border-color: #6387ff;
     -fx-border-width: 1.5;
 }
 
 .combo-box .list-cell {
-    -fx-background-color: #1e293b;
+    -fx-background-color: #111827;
     -fx-text-fill: #e2e8f0;
 }
 
@@ -123,27 +130,28 @@
 }
 
 .combo-box .arrow {
-    -fx-background-color: #38bdf8;
+    -fx-background-color: #6387ff;
 }
 
 .combo-box-popup .list-view {
-    -fx-background-color: #111827;
-    -fx-border-color: #38bdf8;
-    -fx-border-radius: 10;
-    -fx-background-radius: 10;
+    -fx-background-color: #0d1117;
+    -fx-border-color: #6387ff;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 4);
 }
 
 .combo-box-popup .list-cell {
-    -fx-background-color: #111827;
+    -fx-background-color: #0d1117;
     -fx-text-fill: #e2e8f0;
 }
 
 .combo-box-popup .list-cell:hover {
-    -fx-background-color: #1d4ed8;
+    -fx-background-color: rgba(99,135,255,0.15);
     -fx-text-fill: white;
 }
 
 .combo-box-popup .list-cell:filled:selected {
-    -fx-background-color: #2563eb;
+    -fx-background-color: #6387ff;
     -fx-text-fill: white;
 }
