@@ -1,4 +1,4 @@
-package org.example.proiectpip2;
+package org.example.proiectpip2.infra;
 
 import java.io.BufferedReader;
 import java.io.File;
