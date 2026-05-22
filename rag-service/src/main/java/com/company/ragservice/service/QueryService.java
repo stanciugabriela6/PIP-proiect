@@ -10,6 +10,7 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,96 +25,98 @@ public class QueryService {
         this.chatClient = chatClient;
     }
 
-    /**
-     * Primeste intrebarea angajatului si returneaza un raspuns generat
-     * pe baza documentelor din Chroma.
-     *
-     * Fluxul complet:
-     * intrebare -> vector -> similarity search -> top chunks -> prompt -> LLM -> raspuns
-     */
     public QueryResponse query(QueryRequest request) {
-
         String question = request.getQuestion();
-        log.info("Interogare primita: '{}'", question);
+        String selectedFile = request.getSelectedFile();
+        log.info("Interogare primita: '{}' (selectedFile='{}')", question, selectedFile);
 
-        // -------------------------------------------------------
-        // PASUL 1: Similarity Search in Chroma
-        // -------------------------------------------------------
-        // Spring AI transforma automat intrebarea in vector (cu nomic-embed-text)
-        // apoi cauta in Chroma vectorii cei mai apropiati geometric
-        // "apropiati geometric" = texte cu sens similar
         List<Document> relevantDocs = vectorStore.similaritySearch(
                 SearchRequest.builder()
-                        .query(question)        // intrebarea utilizatorului
-                        .topK(5)               // returneaza top 5 chunk-uri cele mai relevante
-                        .similarityThreshold(0.2) // ignora chunk-urile cu scor de similaritate < 0.5
-                        // scorul e intre 0 (total diferit) si 1 (identic)
-                        // 0.5 e un prag rezonabil - nu prea strict, nu prea lax
+                        .query(question)
+                        .topK(8)
+                        .similarityThreshold(0.2)
                         .build()
         );
 
-        log.info("Gasit {} chunk-uri relevante in Chroma", relevantDocs.size());
-
-        // -------------------------------------------------------
-        // PASUL 2: Verificam daca am gasit ceva
-        // -------------------------------------------------------
-        if (relevantDocs.isEmpty()) {
-            log.warn("Nu s-au gasit documente relevante pentru: '{}'", question);
-            return new QueryResponse(
-                    "Nu am gasit informatii relevante in documentele companiei pentru aceasta intrebare.",
-                    0,
-                    "Niciun document relevant"
-            );
+        if (selectedFile != null && !selectedFile.isBlank()) {
+            String selectedNorm = selectedFile.toLowerCase(Locale.ROOT);
+            relevantDocs = relevantDocs.stream()
+                    .filter(doc -> doc.getMetadata().getOrDefault("file_name", "")
+                            .toString().toLowerCase(Locale.ROOT).contains(selectedNorm))
+                    .collect(Collectors.toList());
         }
 
-        // -------------------------------------------------------
-        // PASUL 3: Construim contextul din chunk-urile gasite
-        // -------------------------------------------------------
-        // Luam textul din fiecare chunk si le unim intr-un singur bloc de context
-        // "---" intre ele ajuta LLM-ul sa inteleaga ca sunt surse separate
+        log.info("Gasit {} chunk-uri relevante in Chroma", relevantDocs.size());
+
+        if (relevantDocs.isEmpty()) {
+            log.info("Niciun chunk relevant gasit, raspund conversational pentru: '{}'", question);
+            try {
+                String conversationalPrompt = buildHistoryPrefix(request) + question;
+                String answer = chatClient.prompt().user(conversationalPrompt).call().content();
+                return new QueryResponse(answer, 0, "");
+            } catch (Exception e) {
+                log.error("LLM indisponibil pentru query conversational '{}': {}", question, e.getMessage());
+                return new QueryResponse(
+                        "Serviciul AI este indisponibil momentan. Te rog incearca din nou.",
+                        0,
+                        ""
+                );
+            }
+        }
+
         String context = relevantDocs.stream()
                 .map(Document::getText)
                 .collect(Collectors.joining("\n\n---\n\n"));
 
-        // Extragem numele fisierelor sursa (din metadate) pentru transparenta
         String sources = relevantDocs.stream()
                 .map(doc -> doc.getMetadata().getOrDefault("file_name", "document necunoscut").toString())
-                .distinct()     // eliminam duplicatele (mai multe chunk-uri din acelasi fisier)
+                .distinct()
                 .collect(Collectors.joining(", "));
 
-        log.info("Context construit din sursele: {}", sources);
-
-        // -------------------------------------------------------
-        // PASUL 4: Construim prompt-ul complet si trimitem la LLM
-        // -------------------------------------------------------
-        // Aceasta e "Augmentarea" din RAG - augmentam intrebarea cu context specific
-        // Prompt-ul are 3 parti:
-        //   1. System prompt (definit in AppConfig - personalitatea chatbot-ului)
-        //   2. Context (chunk-urile gasite in Chroma)
-        //   3. Intrebarea utilizatorului
         String augmentedPrompt = """
             Foloseste EXCLUSIV informatiile din contextul de mai jos pentru a raspunde.
             Daca raspunsul nu se gaseste in context, spune explicit ca nu detii aceasta informatie.
             Nu inventa informatii care nu sunt in context.
-            
+
             CONTEXT DIN DOCUMENTELE COMPANIEI:
             %s
-            
-            INTREBAREA ANGAJATULUI:
+
+            %sINTREBAREA ANGAJATULUI:
             %s
-            """.formatted(context, question);
+            """.formatted(context, buildHistoryPrefix(request), question);
 
-        // Trimitem la Groq si asteptam raspunsul
-        String answer = chatClient.prompt()
-                .user(augmentedPrompt)
-                .call()
-                .content();
+        try {
+            String answer = chatClient.prompt().user(augmentedPrompt).call().content();
+            return new QueryResponse(answer, relevantDocs.size(), sources);
+        } catch (Exception e) {
+            log.error("LLM indisponibil pentru query '{}': {}", question, e.getMessage());
+            String fallback = relevantDocs.stream()
+                    .limit(3)
+                    .map(Document::getText)
+                    .map(this::shorten)
+                    .collect(Collectors.joining("\n\n"));
 
-        log.info("Raspuns generat cu succes pentru: '{}'", question);
+            String answer = "Serviciul de generare AI este indisponibil momentan. " +
+                    "Iata ce am gasit direct in documente:\n\n" + fallback;
 
-        // -------------------------------------------------------
-        // PASUL 5: Returnam raspunsul structurat
-        // -------------------------------------------------------
-        return new QueryResponse(answer, relevantDocs.size(), sources);
+            return new QueryResponse(answer, relevantDocs.size(), sources);
+        }
+    }
+
+    private String buildHistoryPrefix(QueryRequest request) {
+        if (request.getHistory() == null || request.getHistory().isEmpty()) return "";
+        StringBuilder sb = new StringBuilder("CONVERSATIE ANTERIOARA:\n");
+        for (QueryRequest.MessageEntry entry : request.getHistory()) {
+            String label = "user".equalsIgnoreCase(entry.getRole()) ? "Angajat" : "Asistent";
+            sb.append(label).append(": ").append(entry.getContent()).append("\n");
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    private String shorten(String text) {
+        if (text == null) return "";
+        String compact = text.replaceAll("\\s+", " ").trim();
+        return compact.length() > 500 ? compact.substring(0, 500) + "..." : compact;
     }
 }

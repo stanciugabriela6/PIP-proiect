@@ -13,12 +13,12 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.example.proiectpip2.ServiceBootstrap;
 
 public class WelcomeFX extends Application {
 
     @Override
     public void start(Stage stage) {
-
         StackPane root = new StackPane();
         root.setStyle("-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #020617);");
 
@@ -59,26 +59,49 @@ public class WelcomeFX extends Application {
         c2y.play();
         c2scale.play();
 
-        Rectangle glass = new Rectangle(420, 230);
+        Rectangle glass = new Rectangle(420, 260);
         glass.setArcWidth(30);
         glass.setArcHeight(30);
         glass.setFill(Color.rgb(255, 255, 255, 0.08));
         glass.setStroke(Color.rgb(255, 255, 255, 0.15));
 
-        Label title = new Label("Welcome to SmartDocs");
-        title.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label title = new Label("SmartDocs");
+        title.setStyle("""
+                -fx-font-size: 34px;
+                -fx-font-weight: bold;
+                -fx-text-fill: #e2e8f0;
+                -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+                -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.6), 16, 0.3, 0, 0);
+                """);
 
-        Label desc = new Label("Your intelligent RAG document assistant");
-        desc.setStyle("-fx-text-fill: #94a3b8;");
+        Label desc = new Label("Intelligent RAG Document Assistant");
+        desc.setStyle("""
+                -fx-text-fill: #6387ff;
+                -fx-font-size: 13px;
+                -fx-font-weight: 600;
+                -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+                """);
 
-        Button btn = new Button("Get Started");
+        Label serviceStatus = new Label("Starting services: Face API, Ollama/Chroma, RAG...");
+        serviceStatus.setStyle("""
+                -fx-text-fill: #4b5563;
+                -fx-font-size: 12px;
+                -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+                """);
+        serviceStatus.setWrapText(true);
+        serviceStatus.setMaxWidth(340);
+
+        Button btn = new Button("Get Started  →");
+        btn.setDisable(true);
         btn.setStyle("""
-                -fx-background-color: linear-gradient(to right, #2563eb, #3b82f6);
+                -fx-background-color: #6387ff;
                 -fx-text-fill: white;
                 -fx-font-weight: bold;
                 -fx-font-size: 14px;
-                -fx-background-radius: 20;
-                -fx-padding: 8 20 8 20;
+                -fx-font-family: 'Segoe UI', system-ui, sans-serif;
+                -fx-background-radius: 10;
+                -fx-padding: 10 28;
+                -fx-effect: dropshadow(gaussian, rgba(99,135,255,0.45), 12, 0.15, 0, 4);
         """);
 
         btn.setOnAction(e -> {
@@ -87,7 +110,7 @@ public class WelcomeFX extends Application {
 
                 Stage stageCurent = (Stage) btn.getScene().getWindow();
                 stageCurent.setScene(scenaNoua);
-                stageCurent.setTitle("SmartDocs — Sign In");
+                stageCurent.setTitle("SmartDocs - Sign In");
                 Platform.runLater(() -> {
                     stageCurent.setMaximized(false);
                     stageCurent.setMaximized(true);
@@ -98,7 +121,7 @@ public class WelcomeFX extends Application {
             }
         });
 
-        VBox box = new VBox(15, title, desc, btn);
+        VBox box = new VBox(15, title, desc, serviceStatus, btn);
         box.setAlignment(Pos.CENTER);
 
         StackPane glassPane = new StackPane(glass, box);
@@ -123,6 +146,25 @@ public class WelcomeFX extends Application {
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
+
+        ServiceBootstrap.warmUpAsync().whenComplete((report, err) -> Platform.runLater(() -> {
+            if (err != null) {
+                serviceStatus.setText("Startup error: " + err.getMessage());
+                serviceStatus.setStyle("-fx-text-fill: #f87171; -fx-font-size: 12px; -fx-font-weight: 600;");
+                btn.setDisable(false);
+                return;
+            }
+
+            if (report.success()) {
+                serviceStatus.setText("All services ready.");
+                serviceStatus.setStyle("-fx-text-fill: #34d399; -fx-font-size: 12px; -fx-font-weight: 600;");
+                btn.setStyle(btn.getStyle() + "-fx-opacity: 1;");
+            } else {
+                serviceStatus.setText("Partial startup: " + report.details());
+                serviceStatus.setStyle("-fx-text-fill: #fbbf24; -fx-font-size: 12px; -fx-font-weight: 600;");
+            }
+            btn.setDisable(false);
+        }));
     }
 
     public static void main(String[] args) {

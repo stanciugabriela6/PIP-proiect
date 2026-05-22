@@ -4,7 +4,7 @@ import fileUploader.model.FileCategory;
 import fileUploader.model.FileItem;
 
 import javax.swing.*;
-import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.List;
 
@@ -42,43 +42,63 @@ public class FileListPanel extends JPanel {
         }
     }
 
-    private static class FileItemRenderer extends DefaultListCellRenderer {
+    private static class FileItemRenderer extends JPanel implements ListCellRenderer<FileItem> {
+        private final JLabel iconLabel = new JLabel();
+        private final JLabel nameLabel = new JLabel();
+        private final JLabel extLabel  = new JLabel();
+        private Color accentColor = AppColors.ACCENT;
+        private boolean selected = false;
 
-        private static final Border DEFAULT_BORDER =
-                BorderFactory.createEmptyBorder(6, 10, 6, 10);
+        FileItemRenderer() {
+            setLayout(new BorderLayout(10, 0));
+
+            iconLabel.setFont(AppColors.font(Font.PLAIN, 15));
+            nameLabel.setFont(AppColors.font(Font.PLAIN, 13));
+            extLabel.setFont(AppColors.font(Font.BOLD, 10));
+
+            JPanel left = new JPanel(new BorderLayout(8, 0));
+            left.setOpaque(false);
+            left.add(iconLabel, BorderLayout.WEST);
+            left.add(nameLabel, BorderLayout.CENTER);
+
+            add(left, BorderLayout.CENTER);
+            add(extLabel, BorderLayout.EAST);
+        }
 
         @Override
-        public Component getListCellRendererComponent(
-                JList<?> list,
-                Object value,
-                int index,
-                boolean isSelected,
-                boolean cellHasFocus
-        ) {
-            JLabel label = (JLabel) super.getListCellRendererComponent(
-                    list, value, index, isSelected, cellHasFocus
-            );
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            Color bar = selected ? accentColor
+                    : new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 90);
+            g2.setColor(bar);
+            g2.fillRect(0, 0, 3, getHeight());
+            g2.dispose();
+        }
 
-            FileItem file = (FileItem) value;
+        @Override
+        public Component getListCellRendererComponent(JList<? extends FileItem> list, FileItem file,
+                                                      int index, boolean isSelected, boolean cellHasFocus) {
             FileCategory category = file.getCategory();
+            accentColor = category.getColor();
+            selected = isSelected;
 
-            label.setOpaque(true);
-            label.setText(
-                    category.getIcon() + " " + file.getFileName() +
-                            " (" + file.getExtension() + ")"
-            );
+            iconLabel.setText(category.getIcon() + "  ");
+            iconLabel.setForeground(accentColor);
 
-            if (isSelected) {
-                label.setBackground(AppColors.SELECTED_BG);
-                label.setForeground(AppColors.TEXT_PRIMARY);
-                label.setBorder(BorderFactory.createLineBorder(AppColors.SELECTED_BORDER));
-            } else {
-                label.setBackground(AppColors.BG_CARD);
-                label.setForeground(category.getColor());
-                label.setBorder(DEFAULT_BORDER);
-            }
+            nameLabel.setText(file.getFileName());
+            nameLabel.setForeground(AppColors.TEXT_PRIMARY);
 
-            return label;
+            extLabel.setText("  " + file.getExtension().toUpperCase() + "  ");
+            extLabel.setForeground(accentColor);
+
+            setBackground(isSelected ? AppColors.BG_HOVER
+                    : (index % 2 == 0 ? AppColors.BG_CARD : AppColors.BG_SURFACE));
+            setBorder(new EmptyBorder(9, 13, 9, 12));
+            setOpaque(true);
+            return this;
         }
     }
 }

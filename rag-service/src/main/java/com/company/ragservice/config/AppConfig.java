@@ -1,20 +1,22 @@
 package com.company.ragservice.config;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AppConfig {
 
-    // ChatClient - trimite intrebari la Groq si primeste raspunsuri
     @Bean
-    public ChatClient chatClient(ChatClient.Builder builder) {
-        return builder
+    public ChatClient chatClient(OllamaChatModel ollamaChatModel) {
+        return ChatClient.builder(ollamaChatModel)
                 .defaultSystem("""
-                Esti un asistent virtual pentru angajatii companiei.
-                Raspunzi DOAR pe baza documentelor din baza de date.
-                Daca informatia nu se afla in documente, spui clar ca nu stii.
+                Esti un asistent virtual prietenos pentru angajatii companiei.
+                Poti purta conversatii normale (salutari, multumiri, intrebari generale).
+                Cand ti se pun intrebari despre documentele companiei, raspunzi EXCLUSIV pe baza informatiilor furnizate in context.
+                Cand nu ai context de documente disponibil, raspunzi conversational si natural.
+                Daca o intrebare specifica despre companie nu se afla in documente, spui clar ca nu ai aceasta informatie in documentele disponibile.
                 Raspunzi intotdeauna in limba in care ti se pune intrebarea.
                 """)
                 .build();

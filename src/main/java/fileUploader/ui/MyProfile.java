@@ -1,15 +1,18 @@
 package fileUploader.ui;
 
 import fileUploader.account.UserAccount;
+import org.example.proiectpip2.UserService;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class MyProfile extends JPanel {
+public class
+MyProfile extends JPanel {
 
     UserAccount user;
+    private final String identityEmail;
     Image backgroundImg;
 
     private JTextField firstNameField;
@@ -26,7 +29,12 @@ public class MyProfile extends JPanel {
     ArrayList<JButton> statusButtons = new ArrayList<>();
 
     public MyProfile(UserAccount user) {
+        this(user, "guest");
+    }
+
+    public MyProfile(UserAccount user, String identityEmail) {
         this.user = user;
+        this.identityEmail = identityEmail == null ? "guest" : identityEmail;
 
         setLayout(null);
         setBackground(AppColors.BG_DEEP);
@@ -52,8 +60,10 @@ public class MyProfile extends JPanel {
             buttons.add(btn);
             btn.addActionListener(e -> {
                 resetBtn();
-                btn.setBackground(AppColors.VALIDATE);
+                btn.setBackground(new Color(30, 42, 72));
+                btn.setBorder(BorderFactory.createLineBorder(AppColors.ACCENT, 2));
                 user.setSelectedAvatarIndex(index);
+                persist();
             });
         }
 
@@ -66,7 +76,6 @@ public class MyProfile extends JPanel {
         labels.add(firstNameLabel);
 
         firstNameField = new JTextField();
-        firstNameField.setEnabled(false);
         firstNameField.setBounds(410, 275, 245, 24);
         fields.add(firstNameField);
 
@@ -75,7 +84,6 @@ public class MyProfile extends JPanel {
         labels.add(lastNameLabel);
 
         lastNameField = new JTextField();
-        lastNameField.setEnabled(false);
         lastNameField.setBounds(410, 310, 245, 24);
         fields.add(lastNameField);
 
@@ -101,7 +109,6 @@ public class MyProfile extends JPanel {
 
         scoreField = new JTextField();
         scoreField.setBounds(410, 415, 180, 24);
-
 
         performanceBar = new JProgressBar(0, 100) {
             @Override
@@ -147,35 +154,13 @@ public class MyProfile extends JPanel {
         setAccount();
         highlightSelectedAvatar();
 
-        JButton updatePosition = new JButton("Position");
-        updatePosition.setBounds(325, 470, 85, 26);
-        statusButtons.add(updatePosition);
-        updatePosition.addActionListener(e -> updatePosition());
-
-        JButton updateAge = new JButton("Age");
-        updateAge.setBounds(415, 470, 85, 26);
-        statusButtons.add(updateAge);
-        updateAge.addActionListener(e -> {
-            try {
-                updateAge();
-            } catch (NumberFormatException ex) {
-                showError("Age must be a number.");
-            }
-        });
-
-        JButton updateScore = new JButton("Score");
-        updateScore.setBounds(505, 470, 85, 26);
-        statusButtons.add(updateScore);
-        updateScore.addActionListener(e -> {
-            try {
-                updatePerformanceScore();
-            } catch (NumberFormatException ex) {
-                showError("Score must be a number.");
-            }
-        });
+        JButton updateAll = new JButton("Save Profile");
+        updateAll.setBounds(325, 470, 175, 26);
+        statusButtons.add(updateAll);
+        updateAll.addActionListener(e -> saveProfile());
 
         JButton deleteUser = new JButton("Delete");
-        deleteUser.setBounds(595, 470, 85, 26);
+        deleteUser.setBounds(505, 470, 175, 26);
         deleteUser.setBackground(new Color(200, 50, 50));
         deleteUser.setForeground(Color.WHITE);
         deleteUser.setFocusPainted(false);
@@ -196,11 +181,37 @@ public class MyProfile extends JPanel {
         setStatusButtons();
     }
 
+    private void persist() {
+        if (!"guest".equalsIgnoreCase(identityEmail)) {
+            UserService.saveUserAccountByEmail(identityEmail, user);
+        }
+    }
+
+    private void saveProfile() {
+        try {
+            user.setFirstName(firstNameField.getText().trim());
+            user.setLastName(lastNameField.getText().trim());
+            user.setPosition(positionField.getText().trim());
+            user.setAge(Integer.parseInt(ageField.getText().trim()));
+            user.setPerformance(Integer.parseInt(scoreField.getText().trim()));
+            if (user.getPerformance() < 0 || user.getPerformance() > 100) {
+                showError("Score must be between 0 and 100.");
+                return;
+            }
+            performanceBar.setValue(user.getPerformance());
+            persist();
+            JOptionPane.showMessageDialog(this, "Profile saved.", "Success", JOptionPane.INFORMATION_MESSAGE);
+        } catch (NumberFormatException ex) {
+            showError("Age and score must be numbers.");
+        }
+    }
+
     public void highlightSelectedAvatar() {
         resetBtn();
         int idx = user.getSelectedAvatarIndex();
         if (idx >= 0 && idx < buttons.size()) {
-            buttons.get(idx).setBackground(AppColors.VALIDATE);
+            buttons.get(idx).setBackground(new Color(30, 42, 72));
+            buttons.get(idx).setBorder(BorderFactory.createLineBorder(AppColors.ACCENT, 2));
         }
     }
 
@@ -208,6 +219,7 @@ public class MyProfile extends JPanel {
         for (JButton btn : statusButtons) {
             btn.setBackground(AppColors.ACCENT);
             btn.setForeground(Color.WHITE);
+            btn.setFont(AppColors.font(Font.BOLD, 13));
             btn.setFocusPainted(false);
             btn.setBorderPainted(false);
             btn.setOpaque(true);
@@ -218,20 +230,20 @@ public class MyProfile extends JPanel {
 
     public void setFields() {
         for (JTextField field : fields) {
-            field.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            field.setFont(AppColors.font(Font.PLAIN, 13));
             field.setForeground(AppColors.TEXT_PRIMARY);
-            field.setBackground(AppColors.BG_SURFACE);
-            field.setCaretColor(AppColors.TEXT_PRIMARY);
+            field.setBackground(AppColors.BG_INPUT);
+            field.setCaretColor(AppColors.ACCENT);
             field.setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(AppColors.BORDER_DEFAULT),
-                    new EmptyBorder(3, 8, 3, 8)));
+                    new EmptyBorder(5, 10, 5, 10)));
             add(field);
         }
     }
 
     public void setLabels() {
         for (JLabel label : labels) {
-            label.setFont(new Font("SansSerif", Font.PLAIN, 12));
+            label.setFont(AppColors.font(Font.PLAIN, 12));
             label.setForeground(AppColors.TEXT_SECONDARY);
             add(label);
         }
@@ -248,7 +260,8 @@ public class MyProfile extends JPanel {
             b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             b.setOpaque(true);
             b.setContentAreaFilled(true);
-            b.setBorderPainted(false);
+            b.setBorderPainted(true);
+            b.setBorder(BorderFactory.createLineBorder(AppColors.BORDER_DEFAULT, 1));
             add(b);
         }
     }
@@ -256,27 +269,14 @@ public class MyProfile extends JPanel {
     public void resetBtn() {
         for (JButton b : buttons) {
             b.setBackground(AppColors.BG_CARD);
+            b.setBorder(BorderFactory.createLineBorder(AppColors.BORDER_DEFAULT, 1));
         }
     }
 
-    public void updatePerformanceScore() {
-        String perfScore = scoreField.getText();
-        int score = Integer.parseInt(perfScore);
-        user.setPerformance(score);
-    }
-
-    public void updateAge() {
-        String age = ageField.getText();
-        int ageInt = Integer.parseInt(age);
-        user.setAge(ageInt);
-    }
-
-    public void updatePosition() {
-        String pos = positionField.getText();
-        user.setPosition(pos);
-    }
-
     public void deleteAccount() {
+        if (!"guest".equalsIgnoreCase(identityEmail)) {
+            UserService.deleteUserByEmail(identityEmail);
+        }
         user.setFirstName("");
         user.setLastName("");
         user.setPosition("");
