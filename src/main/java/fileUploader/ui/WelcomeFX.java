@@ -1,4 +1,4 @@
-package welcomePage;
+package fileUploader.ui;
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -13,7 +13,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.example.proiectpip2.ServiceBootstrap;
+import org.example.proiectpip2.infra.ServiceBootstrap;
 
 public class WelcomeFX extends Application {
 
