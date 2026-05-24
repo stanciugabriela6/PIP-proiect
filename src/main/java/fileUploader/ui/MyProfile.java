@@ -9,6 +9,7 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class
+
 MyProfile extends JPanel {
 
     UserAccount user;
