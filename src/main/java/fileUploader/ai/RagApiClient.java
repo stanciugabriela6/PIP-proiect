@@ -11,18 +11,45 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 
+/**
+ * Client utilizat pentru comunicarea
+ * cu serviciul RAG din aplicația SmartDocs.
+ */
 public final class RagApiClient {
 
+    /**
+     * URL-ul de bază al serviciului RAG.
+     */
     private static final String BASE_URL = resolveBaseUrl();
 
+    /**
+     * Client HTTP utilizat pentru
+     * trimiterea cererilor către API.
+     */
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
+    /**
+     * Procesul asociat serviciului RAG.
+     */
     private static Process serviceProcess = null;
 
+    /**
+     * Constructor privat pentru a preveni
+     * instanțierea clasei utilitare.
+     */
     private RagApiClient() {}
 
+    /**
+     * Verifică dacă serviciul RAG rulează.
+     *
+     * Dacă serviciul nu este pornit,
+     * acesta va fi lansat automat.
+     *
+     * @throws Exception dacă serviciul
+     * nu poate fi pornit
+     */
     public static synchronized void ensureServiceRunning() throws Exception {
         if (isServiceUp()) return;
 
@@ -53,6 +80,12 @@ public final class RagApiClient {
         throw new Exception("rag-service nu a devenit disponibil in timp util");
     }
 
+    /**
+     * Caută directorul serviciului RAG.
+     *
+     * @return directorul serviciului
+     * sau null dacă nu există
+     */
     private static File findRagServiceDir() {
         File dir = new File(System.getProperty("user.dir"));
         for (int i = 0; i < 8 && dir != null; i++) {
@@ -71,10 +104,28 @@ public final class RagApiClient {
         return null;
     }
 
+    /**
+     * Trimite o întrebare către serviciul RAG.
+     *
+     * @param question întrebarea utilizatorului
+     * @param selectedFile fișierul selectat
+     * @return răspunsul serviciului
+     * @throws Exception dacă apare o eroare
+     */
     public static String query(String question, String selectedFile) throws Exception {
         return query(question, selectedFile, null);
     }
 
+    /**
+     * Trimite o întrebare către serviciul RAG
+     * împreună cu istoricul conversației.
+     *
+     * @param question întrebarea utilizatorului
+     * @param selectedFile fișierul selectat
+     * @param history istoricul conversației
+     * @return răspunsul serviciului
+     * @throws Exception dacă apare o eroare
+     */
     public static String query(String question, String selectedFile, List<String[]> history) throws Exception {
         ensureServiceRunning();
 
@@ -88,7 +139,7 @@ public final class RagApiClient {
                 String[] entry = history.get(i);
                 if (i > 0) payload.append(",");
                 payload.append("{\"role\":\"").append(escapeJson(entry[0]))
-                       .append("\",\"content\":\"").append(escapeJson(entry[1])).append("\"}");
+                        .append("\",\"content\":\"").append(escapeJson(entry[1])).append("\"}");
             }
         }
         payload.append("]}");
@@ -109,16 +160,38 @@ public final class RagApiClient {
         return (answer != null && !answer.isBlank()) ? answer : response.body();
     }
 
+    /**
+     * Încarcă un document PDF
+     * în serviciul RAG.
+     *
+     * @param file fișierul PDF
+     * @return răspunsul serviciului
+     * @throws Exception dacă apare o eroare
+     */
     public static String ingestPdf(File file) throws Exception {
         ensureServiceRunning();
         return multipartUpload("/ingest", file, "application/pdf");
     }
 
+    /**
+     * Încarcă un fișier text
+     * în serviciul RAG.
+     *
+     * @param file fișierul text
+     * @return răspunsul serviciului
+     * @throws Exception dacă apare o eroare
+     */
     public static String ingestTxt(File file) throws Exception {
         ensureServiceRunning();
         return multipartUpload("/ingest", file, "text/plain; charset=UTF-8");
     }
 
+    /**
+     * Șterge toate documentele
+     * procesate de serviciul RAG.
+     *
+     * @throws Exception dacă apare o eroare
+     */
     public static void clearDocuments() throws Exception {
         ensureServiceRunning();
         HttpRequest request = HttpRequest.newBuilder()
@@ -132,6 +205,13 @@ public final class RagApiClient {
         }
     }
 
+    /**
+     * Verifică dacă serviciul RAG
+     * este disponibil.
+     *
+     * @return true dacă serviciul rulează,
+     * false în caz contrar
+     */
     public static boolean isServiceUp() {
         try {
             HttpRequest request = HttpRequest.newBuilder()
@@ -146,6 +226,13 @@ public final class RagApiClient {
         }
     }
 
+    /**
+     * Escape-uiește caracterele speciale
+     * pentru format JSON.
+     *
+     * @param s textul original
+     * @return textul procesat
+     */
     private static String escapeJson(String s) {
         StringBuilder sb = new StringBuilder(s.length() + 16);
         for (int i = 0; i < s.length(); i++) {
@@ -164,6 +251,14 @@ public final class RagApiClient {
         return sb.toString();
     }
 
+    /**
+     * Extrage valoarea unui câmp
+     * dintr-un răspuns JSON.
+     *
+     * @param json răspunsul JSON
+     * @param key cheia căutată
+     * @return valoarea extrasă
+     */
     private static String extractJsonString(String json, String key) {
         String needle = "\"" + key + "\"";
         int k = json.indexOf(needle);
@@ -209,6 +304,16 @@ public final class RagApiClient {
         return sb.toString();
     }
 
+    /**
+     * Încarcă un fișier utilizând
+     * cereri multipart/form-data.
+     *
+     * @param endpoint endpoint-ul API
+     * @param file fișierul încărcat
+     * @param contentType tipul conținutului
+     * @return răspunsul serviciului
+     * @throws Exception dacă apare o eroare
+     */
     private static String multipartUpload(String endpoint, File file, String contentType) throws Exception {
         String boundary = "----SmartDocsBoundary" + System.currentTimeMillis();
         byte[] fileBytes = readFile(file);
@@ -237,10 +342,23 @@ public final class RagApiClient {
         return response.body();
     }
 
+    /**
+     * Citește conținutul unui fișier.
+     *
+     * @param file fișierul citit
+     * @return conținutul fișierului
+     * @throws IOException dacă apare o eroare
+     */
     private static byte[] readFile(File file) throws IOException {
         return Files.readAllBytes(file.toPath());
     }
 
+    /**
+     * Determină URL-ul de bază
+     * al serviciului RAG.
+     *
+     * @return URL-ul serviciului
+     */
     private static String resolveBaseUrl() {
         String byProperty = System.getProperty("rag.service.base-url");
         if (byProperty != null && !byProperty.isBlank()) return normalizeBaseUrl(byProperty);
@@ -249,6 +367,12 @@ public final class RagApiClient {
         return "http://localhost:8080/api/rag";
     }
 
+    /**
+     * Normalizează URL-ul serviciului.
+     *
+     * @param raw URL-ul original
+     * @return URL-ul normalizat
+     */
     private static String normalizeBaseUrl(String raw) {
         String trimmed = raw.trim();
         while (trimmed.endsWith("/")) trimmed = trimmed.substring(0, trimmed.length() - 1);

@@ -1,7 +1,10 @@
 module org.example.proiectpip2 {
+
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.base;
+    requires javafx.swing;
+
     requires java.desktop;
     requires java.net.http;
     requires java.sql;
