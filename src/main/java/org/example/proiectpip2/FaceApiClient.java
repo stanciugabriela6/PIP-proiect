@@ -1,5 +1,7 @@
 package org.example.proiectpip2;
 
+import org.example.proiectpip2.infra.LocalInfraBootstrap;
+
 import java.io.File;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,8 +28,9 @@ public class FaceApiClient {
 
     /**
      * Calea către executabilul Python.
+     * Descoperita dinamic: env SMARTDOCS_PYTHON → cai cunoscute → PATH.
      */
-    private static final String PYTHON_EXE = "C:\\msys64\\ucrt64\\bin\\python.exe";
+    private static final String PYTHON_EXE = LocalInfraBootstrap.resolvePythonExe();
 
     /**
      * Client HTTP utilizat pentru

@@ -26,7 +26,7 @@ public final class LocalInfraBootstrap {
 
     private LocalInfraBootstrap() {}
 
-    private static String resolvePythonExe() {
+    public static String resolvePythonExe() {
         // 1. Check explicit env override
         String fromEnv = System.getenv("SMARTDOCS_PYTHON");
         if (fromEnv != null && !fromEnv.isBlank() && new File(fromEnv).exists()) return fromEnv;
