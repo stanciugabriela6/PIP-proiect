@@ -3,8 +3,15 @@ package org.example.proiectpip2.infra;
 import fileUploader.account.UserAccount;
 import org.example.proiectpip2.User;
 
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
+import java.util.Base64;
 
 public final class LocalUserDatabase {
 
@@ -56,7 +63,7 @@ public final class LocalUserDatabase {
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, user.getUsername());
             ps.setString(2, user.getEmail());
-            ps.setString(3, user.getPassword());
+            ps.setString(3, hashPassword(user.getPassword())); // stocat ca hash, niciodata plain-text
             ps.setString(4, user.getRole());
             ps.setString(5, user.getUsername());
             ps.setString(6, "");
@@ -72,14 +79,23 @@ public final class LocalUserDatabase {
     }
 
     public static User findUser(String username, String password) {
-        String sql = "SELECT username,email,password,role FROM users WHERE username=? AND password=?";
+        // Cautam doar dupa username; verificarea parolei se face in Java
+        // (nu in SQL) pentru a putea compara constant-time si a evita
+        // expunerea hash-ului in query.
+        String sql = "SELECT username,email,password,role FROM users WHERE username=?";
         try (Connection c = DriverManager.getConnection(DB_URL);
              PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, username);
-            ps.setString(2, password);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new User(rs.getString("username"), rs.getString("email"), rs.getString("password"), rs.getString("role"));
+                    String storedHash = rs.getString("password");
+                    if (verifyPassword(password, storedHash)) {
+                        return new User(
+                                rs.getString("username"),
+                                rs.getString("email"),
+                                storedHash,
+                                rs.getString("role"));
+                    }
                 }
                 return null;
             }
@@ -176,6 +192,47 @@ public final class LocalUserDatabase {
             ps.setString(1, email);
             ps.executeUpdate();
         } catch (SQLException ignored) {
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // Hashing parole — PBKDF2-HMAC-SHA256, 310.000 iteratii (OWASP)
+    // Format stocat: base64(salt):base64(hash)
+    // ---------------------------------------------------------------
+
+    static String hashPassword(String plainPassword) {
+        try {
+            byte[] salt = new byte[16];
+            new SecureRandom().nextBytes(salt);
+            PBEKeySpec spec = new PBEKeySpec(
+                    plainPassword.toCharArray(), salt, 310_000, 256);
+            SecretKeyFactory skf =
+                    SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hash = skf.generateSecret(spec).getEncoded();
+            spec.clearPassword();
+            return Base64.getEncoder().encodeToString(salt)
+                    + ":" + Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException("Eroare la hashing parola", e);
+        }
+    }
+
+    static boolean verifyPassword(String plainPassword, String stored) {
+        try {
+            String[] parts = stored.split(":", 2);
+            if (parts.length != 2) return false;
+            byte[] salt = Base64.getDecoder().decode(parts[0]);
+            byte[] expectedHash = Base64.getDecoder().decode(parts[1]);
+            PBEKeySpec spec = new PBEKeySpec(
+                    plainPassword.toCharArray(), salt, 310_000, 256);
+            SecretKeyFactory skf =
+                    SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] actualHash = skf.generateSecret(spec).getEncoded();
+            spec.clearPassword();
+            // comparatie constant-time — previne timing attacks
+            return MessageDigest.isEqual(expectedHash, actualHash);
+        } catch (Exception e) {
+            return false;
         }
     }
 }
